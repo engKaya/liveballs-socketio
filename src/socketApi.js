@@ -4,10 +4,17 @@ const io = socketio()
 const socketApi = { }
 socketApi.io = io;
 
+const randomcolors = require('../helpers/randomcolors')
+
 const users = { };
 
 io.on('connection',(socket)=>   {
     console.log('connection')
+
+    socket.on('newMessage',(data)=> {
+        console.log(data)
+        io.emit('clientMessage_fromserver',data)
+    })
 
     socket.on('newUser',(data)=>{
         const defaultdata={
@@ -16,8 +23,8 @@ io.on('connection',(socket)=>   {
                 x:0,
                 y:0,
             },
+            color:randomcolors()
         }
-
 
         const userData = Object.assign(defaultdata,data)
         users[socket.id] = userData

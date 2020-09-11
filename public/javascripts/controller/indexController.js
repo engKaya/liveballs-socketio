@@ -12,6 +12,14 @@ app.controller('indexController', ['$scope','indexFactory' ,($scope,indexFactory
            return false
     }
 
+    function showBubble(id,message) {
+        $('#'+id).find('.message').show().html(message)
+        setTimeout(()=>{
+            $('#'+id).find('.message').hide()
+        },3000)
+
+    }
+
     function initSocket(username) {
 
         const connectionOptions = {
@@ -38,10 +46,19 @@ app.controller('indexController', ['$scope','indexFactory' ,($scope,indexFactory
                }
 
                $scope.messages.push(messageData)
-               $scope.players[data.id] =data
+               $scope.players[data.id] = data
                $scope.$apply()
            })
 
+            socket.on('clientMessage_fromserver',(data) => {
+                $scope.messages.push(data)
+                $scope.$apply()
+                showBubble(data.usernameid,data.message_data)
+                setTimeout(()=>{
+                    const element = document.getElementById('chat-area')
+                    element.scrollTop = element.scrollHeight
+                },500)
+            })
 
             socket.on('animate',(data)=>{
                 console.log(data)
@@ -57,9 +74,32 @@ app.controller('indexController', ['$scope','indexFactory' ,($scope,indexFactory
                     username:user.username,
                 }
 
-                $scope.messages.push(messageData)
-                $scope.$apply()
+               // $scope.messages.push(messageData)
+               // $scope.$apply()
             })
+
+            $scope.newMessage = () => {
+               if (!$scope.message=='') {
+                   let clientMessage = {
+                       usernameid:socket.id,
+                       username: $scope.players[socket.id].username,
+                       type: {
+                           code: 1
+                       },
+                       message_data: $scope.message
+                   };
+                   socket.emit('newMessage', clientMessage)
+                   showBubble(socket.id,$scope.message)
+
+                   $scope.message = ""
+
+                   setTimeout(()=>{
+                       const element = document.getElementById('chat-area')
+                       element.scrollTop = element.scrollHeight
+                   },500)
+
+               }
+            }
 
             let animate = false
             $scope.onClickPlayer = $event => {
