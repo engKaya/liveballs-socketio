@@ -18,19 +18,33 @@ io.on('connection',(socket)=>   {
             },
         }
 
+
         const userData = Object.assign(defaultdata,data)
         users[socket.id] = userData
 
         socket.broadcast.emit('newUser',users[socket.id])
+        socket.emit('initPlayers',users)
+
         console.log(users)
 
+    })
+
+    socket.on('animate',(data) =>{
+
+        users[socket.id].position.x = data.x;
+        users[socket.id].position.y = data.y;
+
+        socket.broadcast.emit('animate',{
+            username:users[socket.id].username,
+            socketid:socket.id,
+            x:data.x,
+            y:data.y});
     })
 
     socket.on('disconnect',()=>{
 
         socket.broadcast.emit('disUser',users[socket.id])
         delete users[socket.id]
-        console.log(users)
     })
 
 
